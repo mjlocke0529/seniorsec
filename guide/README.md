@@ -1,6 +1,8 @@
 # The guide
 
-Rules are grouped into packs. A project's `project_type` and `business` answers in `seniorsec.json` decide which packs apply.
+Rules are grouped into packs. A pack is one file of rules about one topic. A project's answers in `seniorsec.json` decide which packs apply, so a brochure site and an internal API get different checks from the same command.
+
+The first seven packs are security. The last three cover ship-readiness: what else should be true before a public site goes live.
 
 ## Which packs apply
 
@@ -13,6 +15,9 @@ Rules are grouped into packs. A project's `project_type` and `business` answers 
 | ai-agents | `ai-agents.md` | `ai.uses_ai` is true, or `project_type` is `ai-agent` |
 | cloud-infra | `cloud-infra.md` | Any hosting is detected or declared |
 | business | `business.md` | `business.data_handled` lists anything other than `public` |
+| seo | `seo.md` | `exposure` is `public` and `project_type` is `web-app`, `static-site` or `wordpress` |
+| rendering | `rendering.md` | `project_type` is `web-app` or `static-site` |
+| accessibility | `accessibility.md` | `project_type` is `web-app`, `static-site` or `wordpress` |
 
 ## Rule format
 
@@ -32,3 +37,12 @@ Rule IDs are permanent. A retired rule keeps its ID and is marked `Retired`, so 
 ## Changing the guide
 
 Changes come in as pull requests that link an intake note or a primary source. See the Scout role in `AGENTS.md`.
+
+## Adding a pack
+
+1. Add `guide/<name>.md` with rules in the format above and a new ID prefix.
+2. Add a row to the table here and a matching line to `PACK_TABLE` in `cli/seniorsec.mjs`.
+3. Optional: add source-level checks for the rules that can be detected reliably. A rule with no automated check is still useful; agents and people apply it by hand.
+4. Cite at least one foundation source per rule (`sources/README.md`).
+
+Keep packs small. A rule earns its place by being checkable and by preventing a failure that actually happens.

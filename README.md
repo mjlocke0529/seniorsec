@@ -2,7 +2,7 @@
 
 The senior security engineer every repo should have.
 
-SeniorSec is a security guide written for AI agents, plus a small command-line tool that applies it to your project. It tells an agent what "secure" means for *your* kind of project and business, checks the project against it, and writes a patch plan another agent can carry out.
+SeniorSec is a security and ship-readiness guide written for AI agents, plus a small command-line tool that applies it to your project. It tells an agent what "ready" means for *your* kind of project and business, checks the project against it, and writes a patch plan another agent can carry out.
 
 ![SeniorSec running init and check on a sample project](docs/img/demo.gif)
 
@@ -14,7 +14,7 @@ Most small teams have no security engineer. They have a dependency bot that open
 
 SeniorSec fills that gap with three things:
 
-- **A standard to work to.** 47 rules in 7 packs, each with a check and a fix, so an agent applies the same judgment every time instead of improvising.
+- **A standard to work to.** 63 rules in 10 packs, each with a check and a fix, so an agent applies the same judgment every time instead of improvising.
 - **Your context, written down once.** A `seniorsec.json` profile records what the project is, what data it holds and who approves fixes. Rules and deadlines follow from it.
 - **A plan, not a list.** Findings come out as numbered steps with a verification and a rollback for each, ready to hand to a worker agent or a developer.
 
@@ -54,6 +54,47 @@ Hand `plan.md` and [`templates/worker-task.md`](templates/worker-task.md) to a w
 
 **Exit codes:** `0` clean, `1` findings, `2` a finding is on CISA's exploited list, `3` a lookup could not run (so "no findings" is not proven).
 
+## What it checks
+
+A pack is one file of rules about one topic. The same `check` command applies whichever packs your profile calls for.
+
+| Pack | Rules | Applies to |
+|---|---|---|
+| core | 6 | Every project |
+| secrets-identity | 5 | Every project |
+| web-app | 7 | Web apps, APIs and mobile backends |
+| wordpress | 7 | WordPress sites |
+| ai-agents | 9 | Anything that calls a model or is worked on by agents |
+| cloud-infra | 7 | Anything with hosting |
+| business | 6 | Any business handling non-public data |
+| seo | 6 | Public sites |
+| rendering | 5 | Web apps and static sites |
+| accessibility | 5 | Web apps, static sites and WordPress |
+
+The first seven are security. The last three are ship-readiness: titles and metadata, sitemap and robots, content that is actually in the server's HTML, raw-HTML sinks, secrets behind a public prefix, page language and image alt text. Adding a topic means adding a file; see [`guide/README.md`](guide/README.md).
+
+## What it does to your project
+
+SeniorSec is built to be safe to point at a codebase you care about.
+
+- **Reads** source files, manifests and lockfiles.
+- **Writes** two files, both in your project root: `seniorsec.json` and the report you name with `--out`.
+- **Sends** npm package names and versions to OSV.dev, and downloads the public CISA KEV list. `--offline` skips both.
+- **Never** installs anything, runs your code, edits your source, or contacts any other service.
+- **Has no dependencies.** The whole tool is one file you can read: [`cli/seniorsec.mjs`](cli/seniorsec.mjs).
+
+## Skills
+
+If you use a coding agent that supports skills in the `SKILL.md` format, three are included in [`skills/`](skills/):
+
+| Skill | What it does |
+|---|---|
+| `seniorsec-check` | Sets up the profile, runs the check and explains the findings |
+| `seniorsec-plan` | Turns a finding or an advisory into a patch plan with verify and rollback per step |
+| `seniorsec-patch` | Executes an approved plan step by step and opens a pull request |
+
+Copy the folders you want into your agent's skills directory. Each skill states what it reads, writes and sends before it does anything, and none of them merges or pushes to your default branch.
+
 ## What ongoing looks like
 
 SeniorSec is meant to run continuously, not once.
@@ -92,11 +133,11 @@ Two design choices matter most:
 
 ## Sources and validation
 
-22 sources in three tiers. [`sources/README.md`](sources/README.md) has the full validation rules.
+25 sources in three tiers. [`sources/README.md`](sources/README.md) has the full validation rules.
 
 | Tier | Sources | Role |
 |---|---|---|
-| Foundation | OWASP Top 10:2025, OWASP LLM Top 10 and Agentic Top 10 (2026), OWASP ASVS, MITRE ATLAS, NIST SSDF and its generative-AI profile, CWE Top 25, OpenSSF Scorecard, the Clouds Against Humanity wiki | Shape the rules |
+| Foundation | OWASP Top 10:2025, OWASP LLM Top 10 and Agentic Top 10 (2026), OWASP ASVS, MITRE ATLAS, NIST SSDF and its generative-AI profile, CWE Top 25, OpenSSF Scorecard, WCAG 2.2, Google Search Central, schema.org, the Clouds Against Humanity wiki | Shape the rules |
 | Primary | CISA KEV, OSV.dev, GitHub Advisory Database, NVD, FIRST EPSS, CISA advisories, Wordfence Intelligence | Confirm a finding and set its priority |
 | News | BleepingComputer, The Hacker News, SANS Internet Storm Center, Krebs on Security, AI Incident Database | Leads only |
 
@@ -104,14 +145,16 @@ A vulnerability becomes a plan only when a primary source confirms it **and** th
 
 ## Status
 
-Early release (v0.2). See [`CHANGELOG.md`](CHANGELOG.md).
+Early release (v0.3). See [`CHANGELOG.md`](CHANGELOG.md).
 
 | Piece | State |
 |---|---|
-| Guide rule packs | First draft, 7 packs, 47 rules |
-| Source registry | 22 sources |
+| Guide rule packs | First draft, 10 packs, 63 rules |
+| Source registry | 25 sources |
 | `init` | Detects Node, Python, Ruby, PHP/WordPress, Go and Rust projects |
-| `check` | Four static checks; npm lockfiles against OSV with CISA KEV cross-reference. Other ecosystems are detected and reported as not checked |
+| `check` | Security: four static checks, plus npm lockfiles against OSV with CISA KEV cross-reference (other ecosystems are detected and reported as not checked). Ship-readiness: source-level SEO, rendering and accessibility checks |
+| Skills | Three, written and not yet exercised in a live agent |
+| Performance pack | Not started; will wrap Lighthouse |
 | EPSS, NVD, Wordfence | Listed and documented; not yet queried by `check` |
 | Scout / Planner / Worker roles | Documented in `AGENTS.md`, not automated |
 
@@ -120,6 +163,7 @@ Early release (v0.2). See [`CHANGELOG.md`](CHANGELOG.md).
 ```
 AGENTS.md               entry point for any agent working in or with this repo
 guide/                  the rules, one file per rule pack
+skills/                 check, plan and patch skills for your own agent
 sources/                source registry, validation rules, wiki index
 intake/                 dated findings from the feeds
 plans/                  patch plans

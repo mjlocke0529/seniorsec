@@ -58,6 +58,9 @@ const PACK_TABLE = [
   ['ai-agents', (p) => p.declared.ai?.uses_ai === true || p.declared.project_type === 'ai-agent'],
   ['cloud-infra', (p) => (p.detected.hosting || []).length > 0 || p.declared.project_type === 'infrastructure'],
   ['business', (p) => (p.declared.business?.data_handled || []).some((d) => d !== 'public')],
+  ['seo', (p) => p.declared.exposure === 'public' && ['web-app', 'static-site', 'wordpress'].includes(p.declared.project_type)],
+  ['rendering', (p) => ['web-app', 'static-site'].includes(p.declared.project_type)],
+  ['accessibility', (p) => ['web-app', 'static-site', 'wordpress'].includes(p.declared.project_type)],
 ];
 
 // ---------- helpers ----------
@@ -272,6 +275,82 @@ function localFindings(root, profile) {
   return f;
 }
 
+// Repo-side checks for the seo, rendering and accessibility packs. Read-only, pattern-based:
+// they point a person or agent at the place to look and do not replace a browser audit.
+function siteFindings(root, profile, packs) {
+  const f = [], has = (p) => packs.includes(p);
+  if (!has('seo') && !has('rendering') && !has('accessibility')) return f;
+  const files = walk(root, 8).filter((p) => !/(^|\/)(test|tests|__tests__|e2e|fixtures|stories)\//.test(p) && !/\.(test|spec|stories)\.[jt]sx?$/.test(p));
+  const read = (p) => { try { const full = path.join(root, p); return fs.statSync(full).size > 500000 ? '' : fs.readFileSync(full, 'utf8'); } catch { return ''; } };
+  const lineOf = (text, idx) => text.slice(0, idx).split('\n').length;
+  const some = (list, n = 5) => list.slice(0, n).join(', ') + (list.length > n ? ` and ${list.length - n} more` : '');
+  const add = (rule, severity, where, summary) => f.push({ kind: 'config', rule, severity, where, summary });
+
+  // ---- static HTML documents
+  const noTitle = [], noDesc = [], noLang = [], htmlNoAlt = [];
+  for (const p of files.filter((x) => /\.html?$/.test(x)).slice(0, 300)) {
+    const t = read(p); if (!/<html[\s>]/i.test(t)) continue;
+    if (!/<title[^>]*>\s*[^<\s][^<]*<\/title>/i.test(t)) noTitle.push(p);
+    if (!/<meta[^>]+name=["']description["'][^>]*content=["'][^"']+["']|<meta[^>]+content=["'][^"']+["'][^>]*name=["']description["']/i.test(t)) noDesc.push(p);
+    if (!/<html[^>]*\slang=["'][a-zA-Z-]+["']/i.test(t)) noLang.push(p);
+    if ((t.match(/<img\b[^>]*>/gi) || []).some((tag) => !/\salt\s*=/.test(tag))) htmlNoAlt.push(p);
+  }
+  // ---- Next.js App Router
+  const appRoot = ['app', 'src/app'].find((d) => files.some((p) => new RegExp(`^${d}/layout\\.[jt]sx?$`).test(p)));
+  const META = /export\s+(const\s+metadata\b|(async\s+)?function\s+generateMetadata\b)/;
+  const pagesNoMeta = [], pagesInherit = [], clientPages = [];
+  let pageCount = 0;
+  if (appRoot) {
+    const layouts = new Map(files.filter((p) => p.startsWith(appRoot + '/') && /\/layout\.[jt]sx?$/.test(p)).map((p) => [p.slice(0, p.lastIndexOf('/')), read(p)]));
+    for (const p of files.filter((x) => x.startsWith(appRoot + '/') && /\/page\.[jt]sx?$/.test(x))) {
+      pageCount++;
+      const t = read(p); let dir = p.slice(0, p.lastIndexOf('/')), inherited = false;
+      for (;;) { if (layouts.has(dir) && META.test(layouts.get(dir))) inherited = true; if (dir === appRoot) break; dir = dir.slice(0, dir.lastIndexOf('/')); }
+      if (!META.test(t)) (inherited ? pagesInherit : pagesNoMeta).push(p);
+      if (/^\s*(\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*['"]use client['"]/.test(t)) clientPages.push(p);
+    }
+    const rootLayout = layouts.get(appRoot) || '';
+    if (/<html\b/.test(rootLayout) && !/<html[^>]*\slang=/.test(rootLayout)) noLang.push(`${appRoot}/layout`);
+  }
+  const hasWeb = appRoot || noTitle.length + noDesc.length > 0 || files.some((p) => /\.html?$/.test(p)) || (profile.detected.frameworks || []).some((x) => ['next', 'react', 'vue', 'nuxt', 'svelte', '@sveltejs/kit'].includes(x));
+
+  if (has('seo')) {
+    if (noTitle.length) add('SEO-01', 'medium', noTitle[0], `No <title> in: ${some(noTitle)}`);
+    if (pagesNoMeta.length) add('SEO-01', 'medium', pagesNoMeta[0], `No metadata export on the page or any layout above it: ${some(pagesNoMeta)}`);
+    if (pagesInherit.length > 1 && pagesInherit.length === pageCount) add('SEO-01', 'low', appRoot, `All ${pageCount} pages share the layout's title; give key pages their own metadata.`);
+    if (noDesc.length) add('SEO-02', 'low', noDesc[0], `No meta description in: ${some(noDesc)}`);
+    if (hasWeb && profile.declared.project_type !== 'wordpress') {
+      const base = (p) => p.split('/').pop();
+      if (!files.some((p) => /^sitemap[\w-]*\.(xml|[jt]s)$/.test(base(p)) || /^next-sitemap\.config\./.test(base(p)))) add('SEO-04', 'low', '(repo)', 'No sitemap file or sitemap route found.');
+      if (!files.some((p) => /^robots\.(txt|[jt]s)$/.test(base(p)))) add('SEO-04', 'low', '(repo)', 'No robots.txt file or robots route found.');
+    }
+    if (clientPages.length) add('RND-01', 'medium', clientPages[0], `Whole page marked "use client", so its content may not be in the server HTML: ${some(clientPages)}`);
+  }
+  if (has('accessibility')) {
+    if (noLang.length) add('A11Y-01', 'medium', noLang[0], `<html> has no lang attribute in: ${some(noLang)}`);
+    const jsxNoAlt = [];
+    for (const p of files.filter((x) => /\.[jt]sx$/.test(x)).slice(0, 1500)) {
+      const t = read(p);
+      if ((t.match(/<(img|Image)\b[^>]*>/g) || []).some((tag) => !/\balt\s*=/.test(tag) && !/\{\s*\.\.\./.test(tag))) jsxNoAlt.push(p);
+    }
+    const noAlt = [...htmlNoAlt, ...jsxNoAlt];
+    if (noAlt.length) add('A11Y-02', 'medium', noAlt[0], `Images without an alt attribute in: ${some(noAlt)}`);
+  }
+  if (has('rendering')) {
+    const sinks = [], leaks = [];
+    const SINK = /dangerouslySetInnerHTML|\bv-html\s*=|\{@html\s|\.innerHTML\s*=|\.outerHTML\s*=|document\.write\(/;
+    const LEAK = /\b(NEXT_PUBLIC|VITE|REACT_APP|PUBLIC|NUXT_PUBLIC|EXPO_PUBLIC)_[A-Z0-9_]*(SECRET|PRIVATE|PASSWORD|PASSWD|SERVICE_ROLE|ADMIN_KEY)[A-Z0-9_]*/;
+    for (const p of files.filter((x) => /\.([jt]sx?|mjs|cjs|vue|svelte)$/.test(x) || /(^|\/)\.env\.(example|sample|template)$/.test(x)).slice(0, 3000)) {
+      const t = read(p); let m;
+      if ((m = SINK.exec(t))) sinks.push(`${p}:${lineOf(t, m.index)}`);
+      if ((m = LEAK.exec(t))) leaks.push(`${m[0]} (${p}:${lineOf(t, m.index)})`);
+    }
+    if (sinks.length) add('RND-03', 'medium', sinks[0], `Raw HTML is written to the page; confirm the value is never user- or model-supplied, or is sanitized: ${some(sinks)}`);
+    if (leaks.length) add('RND-04', 'high', leaks[0].replace(/^.*\((.*)\)$/, '$1'), `Variable with a public prefix but a secret-sounding name is shipped to browsers: ${some(uniq(leaks), 3)}`);
+  }
+  return f;
+}
+
 const SEV_ORDER = ['kev', 'critical', 'high', 'medium', 'low', 'unknown'];
 const sevOf = (x) => (x.kev ? 'kev' : x.severity);
 function deadline(policy, sev) {
@@ -338,7 +417,8 @@ function renderText(profile, packs, gaps, findings, notVerified, outFile) {
 async function cmdCheck(root, flags) {
   const profile = loadProfile(root), gaps = profileGaps(profile);
   const packs = PACK_TABLE.filter(([, test]) => test(profile)).map(([n]) => n);
-  const findings = localFindings(root, profile), notVerified = [];
+  const findings = [...localFindings(root, profile), ...siteFindings(root, profile, packs)], notVerified = [];
+  if (['seo', 'rendering', 'accessibility'].some((p) => packs.includes(p))) notVerified.push('SEO, rendering and accessibility checks read the source only. Nothing was loaded in a browser; run Lighthouse or an accessibility scanner against the built site for what pattern checks cannot see.');
   let incomplete = false;
 
   const extra = (profile.declared.overrides?.extra_manifests || []).map((p) => ({ path: p, ecosystem: 'npm', lockfile: true }));

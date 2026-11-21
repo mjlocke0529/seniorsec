@@ -91,6 +91,33 @@
       "use": "Repository hygiene checks that back CORE-06 and AI-05."
     },
     {
+      "id": "google-search-central",
+      "name": "Google Search Central documentation",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://developers.google.com/search/docs",
+      "cadence": "quarterly",
+      "use": "Basis for the seo pack and RND-01."
+    },
+    {
+      "id": "wcag",
+      "name": "W3C Web Content Accessibility Guidelines 2.2",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://www.w3.org/TR/WCAG22/",
+      "cadence": "yearly",
+      "use": "Success criteria cited by the accessibility pack."
+    },
+    {
+      "id": "schema-org",
+      "name": "schema.org",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://schema.org/",
+      "cadence": "yearly",
+      "use": "Vocabulary for SEO-05 structured data."
+    },
+    {
       "id": "cisa-kev",
       "name": "CISA Known Exploited Vulnerabilities catalog",
       "tier": "primary",

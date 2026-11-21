@@ -2,6 +2,27 @@
 
 Guide changes, source changes and tool changes are all recorded here, newest first.
 
+## 0.3.0 — 2026-11-21
+
+**Guide**
+- Three ship-readiness packs: seo (6 rules), rendering (5), accessibility (5). 10 packs and 63 rules in total.
+- `guide/README.md` explains what a pack is and how to add one.
+
+**Tool**
+- `check` selects the new packs from the profile and runs source-level checks for them: missing titles, descriptions and metadata; missing sitemap or robots; fully client-rendered public pages; raw-HTML sinks; secret-sounding variables behind a public prefix; missing `lang`; images without `alt`.
+- These checks read source only. The report says so and points to a browser audit for the rest.
+
+**Skills**
+- `skills/seniorsec-check`, `skills/seniorsec-plan`, `skills/seniorsec-patch` in the SKILL.md format, for adding to an agent's workflow.
+
+**Sources**
+- 3 added (25 total): Google Search Central, WCAG 2.2, schema.org.
+
+**Known gaps (added)**
+- No performance pack yet. Core Web Vitals need a browser; the plan is to wrap Lighthouse rather than rebuild it.
+- App Router detection covers Next.js only. Other frameworks get the HTML, raw-HTML and public-prefix checks.
+- Skills have been written but not yet exercised in a live agent.
+
 ## 0.2.0 — 2026-11-21
 
 **Docs**

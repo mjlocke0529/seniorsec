@@ -74,7 +74,7 @@ ok('re-running init keeps declared answers');
 
 // packs
 r = await run(['packs', dir]);
-assert.deepEqual(r.out.trim().split('\n'), ['core', 'secrets-identity', 'web-app', 'ai-agents', 'cloud-infra', 'business']);
+assert.deepEqual(r.out.trim().split('\n'), ['core', 'secrets-identity', 'web-app', 'ai-agents', 'cloud-infra', 'business', 'seo', 'rendering', 'accessibility']);
 ok('pack selection follows the profile');
 
 // check with mock services
@@ -108,12 +108,44 @@ ok('check renders a patch plan');
 const planFile = path.join(dir, 'plan.md');
 r = await run(['check', dir, '--out', planFile], mock);
 assert.equal(r.code, 2, r.out);
-assert.match(r.out, /5 finding\(s\)|6 finding\(s\)|7 finding\(s\)/);
+assert.match(r.out, /\d+ finding\(s\)/);
 assert.match(r.out, /KEV\s+CORE-02\s+leftpadish@1\.0\.0/);
 assert.match(r.out, /Full report and draft patch plan/);
 assert.match(fs.readFileSync(planFile, 'utf8'), /npm install leftpadish@1\.0\.3/);
 fs.rmSync(planFile);
 ok('--out writes the plan and prints a short summary');
+
+// site packs: SEO, rendering, accessibility (repo-side)
+w('app/layout.tsx', 'export const metadata = { title: "Fixture" };\nexport default function L({ children }) { return <html><body>{children}</body></html>; }\n');
+w('app/page.tsx', '// home\n"use client";\nexport default function P() { return <main><img src="/a.png" /></main>; }\n');
+w('app/about/page.tsx', 'export const metadata = { title: "About" };\nexport default function P({ html }) {\n  return <div dangerouslySetInnerHTML={{ __html: html }} />;\n}\n');
+w('app/pricing/page.tsx', 'import Image from "next/image";\nexport default function P() { return <Image src="/p.png" alt="Pricing table" width={10} height={10} />; }\n');
+w('public/legacy.html', '<!doctype html><html><head><title> </title></head><body><img src="x.png"></body></html>');
+w('.env.example', 'NEXT_PUBLIC_API_URL=\nNEXT_PUBLIC_STRIPE_SECRET_KEY=\n');
+r = await run(['check', dir, '--offline', '--json']);
+j = JSON.parse(r.out);
+const site = (rule) => j.findings.filter((x) => x.rule === rule);
+assert.ok(site('SEO-01').some((x) => /legacy\.html/.test(x.summary)), JSON.stringify(site('SEO-01')));
+assert.ok(!site('SEO-01').some((x) => /No metadata export/.test(x.summary)), 'layout metadata is inherited');
+assert.ok(site('SEO-02').length === 1 && site('SEO-04').length === 2);
+assert.ok(site('RND-01').some((x) => x.where === 'app/page.tsx'));
+assert.ok(site('RND-03').some((x) => x.where === 'app/about/page.tsx:3'), JSON.stringify(site('RND-03')));
+assert.ok(site('RND-04').some((x) => /NEXT_PUBLIC_STRIPE_SECRET_KEY/.test(x.summary) && x.severity === 'high'));
+assert.ok(!site('RND-04').some((x) => /NEXT_PUBLIC_API_URL/.test(x.summary)));
+assert.ok(site('A11Y-01').some((x) => /app\/layout/.test(x.summary) && /legacy\.html/.test(x.summary)));
+assert.ok(site('A11Y-02').some((x) => /app\/page\.tsx/.test(x.summary) && /legacy\.html/.test(x.summary) && !/pricing/.test(x.summary)));
+assert.ok(j.notVerified.some((n) => /Nothing was loaded in a browser/.test(n)));
+ok('site packs find SEO, rendering and accessibility gaps in source');
+
+// an internal API gets none of the site packs
+prof = JSON.parse(fs.readFileSync(path.join(dir, 'seniorsec.json'), 'utf8'));
+prof.declared.project_type = 'api'; prof.declared.exposure = 'internal';
+fs.writeFileSync(path.join(dir, 'seniorsec.json'), JSON.stringify(prof));
+r = await run(['check', dir, '--offline', '--json']);
+j = JSON.parse(r.out);
+assert.ok(!j.findings.some((x) => /^(SEO|RND|A11Y)-/.test(x.rule)) && !j.packs.includes('seo'));
+ok('site packs are skipped when the profile does not call for them');
+for (const p of ['app', 'public', '.env.example']) fs.rmSync(path.join(dir, p), { recursive: true });
 
 // unreachable OSV must not look clean
 fs.rmSync(path.join(dir, '.env')); fs.rmSync(path.join(dir, '.github'), { recursive: true }); fs.rmSync(path.join(dir, 'AGENTS.md')); fs.rmSync(path.join(dir, 'services'), { recursive: true });

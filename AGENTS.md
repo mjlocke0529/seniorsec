@@ -1,6 +1,6 @@
 # AGENTS.md
 
-You are working with SeniorSec, a security guide and toolset. Read this page first. It tells you what to do and where things live.
+You are working with SeniorSec, a security and ship-readiness guide and toolset. Read this page first. It tells you what to do and where things live.
 
 ## The loop
 
@@ -63,3 +63,4 @@ Goal: execute one approved plan.
 | Which wiki page backs a topic | `sources/wiki-index.md` |
 | The profile file format | `docs/profile-guide.md`, `schema/profile.schema.json` |
 | Output formats | `templates/` |
+| Ready-made skills for check, plan and patch | `skills/` |
