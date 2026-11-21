@@ -1,0 +1,15 @@
+SeniorSec
+Copyright 2026 The SeniorSec contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Portions of the guide in guide/ and the index in sources/wiki-index.md are
+informed by, and in places adapted from, the Clouds Against Humanity wiki:
+
+  Clouds Against Humanity
+  Copyright 2026 ChiefGyk3D
+  https://github.com/ChiefGyk3D/Clouds-Against-Humanity
+  Licensed under the Apache License, Version 2.0.
+
+Material adapted from that project has been rewritten, condensed and
+reorganized into rule form. Each rule that draws on it links the source page.

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/mjlocke0529/seniorsec/main/schema/profile.schema.json",
+  "seniorsec": "0.1",
+  "detected": {
+    "languages": ["PHP"],
+    "frameworks": ["WordPress"],
+    "manifests": [],
+    "hosting": [],
+    "ci": [],
+    "ai": { "sdks": [], "mcp_configs": [], "agent_files": [] },
+    "generated_at": "2026-11-21T00:00:00.000Z"
+  },
+  "declared": {
+    "project_type": "wordpress",
+    "exposure": "public",
+    "business": {
+      "type": "local contractor brochure site with a contact form",
+      "data_handled": ["personal"],
+      "compliance": [],
+      "critical_vendors": ["managed WordPress host", "form plugin vendor"]
+    },
+    "ai": { "uses_ai": false, "models": [], "tools": [], "mcp_servers": [], "data_in_context": [], "human_approval_for": [] },
+    "patch_policy": { "approver": "site owner", "kev_days": 7, "critical_days": 14, "high_days": 30, "auto_merge": "none" },
+    "overrides": {
+      "wordpress": {
+        "core": "x.y.z",
+        "php": "x.y",
+        "plugins": [{ "name": "example-forms", "version": "x.y.z" }],
+        "themes": [{ "name": "example-theme", "version": "x.y.z" }]
+      }
+    }
+  }
+}

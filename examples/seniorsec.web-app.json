@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/mjlocke0529/seniorsec/main/schema/profile.schema.json",
+  "seniorsec": "0.1",
+  "detected": {
+    "languages": ["JavaScript", "TypeScript"],
+    "frameworks": ["firebase", "next", "react"],
+    "manifests": [
+      { "path": "package-lock.json", "ecosystem": "npm", "lockfile": true },
+      { "path": "package.json", "ecosystem": "npm", "lockfile": false }
+    ],
+    "hosting": ["Firebase"],
+    "ci": ["GitHub Actions"],
+    "ai": { "sdks": ["@anthropic-ai/sdk"], "mcp_configs": [], "agent_files": ["AGENTS.md"] },
+    "generated_at": "2026-11-21T00:00:00.000Z"
+  },
+  "declared": {
+    "project_type": "web-app",
+    "exposure": "authenticated",
+    "business": {
+      "type": "appointment booking for a small service business",
+      "data_handled": ["personal", "payment-card"],
+      "compliance": ["PCI-DSS"],
+      "critical_vendors": ["Stripe (hosted checkout)", "Firebase", "Anthropic API"]
+    },
+    "ai": {
+      "uses_ai": true,
+      "models": ["Anthropic Claude"],
+      "tools": ["read customer's own bookings", "draft confirmation email"],
+      "mcp_servers": [],
+      "data_in_context": ["personal"],
+      "human_approval_for": ["sending email", "refunds"]
+    },
+    "patch_policy": { "approver": "owner", "kev_days": 7, "critical_days": 14, "high_days": 30, "auto_merge": "none" },
+    "overrides": {}
+  }
+}

@@ -1,0 +1,5 @@
+# Every change needs review. Agent instruction files and the guide are called out on purpose (rule AI-06).
+*            @mjlocke0529
+/AGENTS.md   @mjlocke0529
+/guide/      @mjlocke0529
+/templates/  @mjlocke0529

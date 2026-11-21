@@ -1,0 +1,13 @@
+{
+  "name": "seniorsec",
+  "version": "0.1.0",
+  "description": "The senior security engineer every repo should have: an agent-readable security guide plus a zero-dependency check tool.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": { "seniorsec": "cli/seniorsec.mjs" },
+  "files": ["cli/", "schema/", "guide/", "templates/", "docs/", "AGENTS.md", "NOTICE"],
+  "engines": { "node": ">=18" },
+  "scripts": { "test": "node test/run.mjs" },
+  "repository": { "type": "git", "url": "git+https://github.com/mjlocke0529/seniorsec.git" },
+  "keywords": ["security", "agents", "ai", "vulnerability", "patching", "owasp"]
+}

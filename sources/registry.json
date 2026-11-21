@@ -1,0 +1,99 @@
+{
+  "$comment": "Every source SeniorSec reads. tier: foundation = shapes the rules; primary = authoritative facts that can trigger a plan; news = leads only, must be confirmed against a primary source before anything changes.",
+  "sources": [
+    {
+      "id": "cah-wiki",
+      "name": "Clouds Against Humanity wiki",
+      "tier": "foundation",
+      "kind": "git",
+      "url": "https://github.com/ChiefGyk3D/Clouds-Against-Humanity.wiki.git",
+      "cadence": "monthly",
+      "license": "Apache-2.0",
+      "notes": "About 180 long pages. Do not read whole. Use sources/wiki-index.md to find the page for a topic."
+    },
+    {
+      "id": "owasp-llm-top10",
+      "name": "OWASP GenAI LLM Top 10 (2026)",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/",
+      "cadence": "quarterly"
+    },
+    {
+      "id": "owasp-agentic-top10",
+      "name": "OWASP Top 10 for Agentic Applications (2026)",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "cadence": "quarterly"
+    },
+    {
+      "id": "mitre-atlas",
+      "name": "MITRE ATLAS",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://atlas.mitre.org/",
+      "cadence": "quarterly",
+      "notes": "Technique IDs (AML.Txxxx) used in guide/ai-agents.md. Re-check IDs on each ATLAS release."
+    },
+    {
+      "id": "cisa-kev",
+      "name": "CISA Known Exploited Vulnerabilities catalog",
+      "tier": "primary",
+      "kind": "json",
+      "url": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+      "mirror": "https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json",
+      "cadence": "daily"
+    },
+    {
+      "id": "osv",
+      "name": "OSV.dev",
+      "tier": "primary",
+      "kind": "api",
+      "url": "https://api.osv.dev/v1/querybatch",
+      "cadence": "on-check",
+      "notes": "Aggregates GitHub Security Advisories, PyPA, RustSec and others. Query by package and version."
+    },
+    {
+      "id": "ghsa",
+      "name": "GitHub Advisory Database",
+      "tier": "primary",
+      "kind": "web",
+      "url": "https://github.com/advisories",
+      "cadence": "on-check",
+      "notes": "Reviewed advisories only. Already included in OSV results; use directly for detail pages."
+    },
+    {
+      "id": "bleepingcomputer",
+      "name": "BleepingComputer",
+      "tier": "news",
+      "kind": "rss",
+      "url": "https://www.bleepingcomputer.com/feed/",
+      "cadence": "daily"
+    },
+    {
+      "id": "thehackernews",
+      "name": "The Hacker News",
+      "tier": "news",
+      "kind": "rss",
+      "url": "https://feeds.feedburner.com/TheHackersNews",
+      "cadence": "daily"
+    },
+    {
+      "id": "sans-isc",
+      "name": "SANS Internet Storm Center",
+      "tier": "news",
+      "kind": "rss",
+      "url": "https://isc.sans.edu/rssfeed.xml",
+      "cadence": "daily"
+    },
+    {
+      "id": "krebs",
+      "name": "Krebs on Security",
+      "tier": "news",
+      "kind": "rss",
+      "url": "https://krebsonsecurity.com/feed/",
+      "cadence": "weekly"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/mjlocke0529/seniorsec/main/schema/profile.schema.json",
+  "title": "SeniorSec project profile",
+  "type": "object",
+  "required": ["seniorsec", "detected", "declared"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "seniorsec": { "type": "string", "description": "Profile format version", "const": "0.1" },
+    "detected": {
+      "type": "object",
+      "required": ["languages", "manifests", "generated_at"],
+      "properties": {
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "frameworks": { "type": "array", "items": { "type": "string" } },
+        "manifests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "ecosystem"],
+            "properties": {
+              "path": { "type": "string" },
+              "ecosystem": { "type": "string" },
+              "lockfile": { "type": "boolean" }
+            }
+          }
+        },
+        "hosting": { "type": "array", "items": { "type": "string" } },
+        "ci": { "type": "array", "items": { "type": "string" } },
+        "ai": {
+          "type": "object",
+          "properties": {
+            "sdks": { "type": "array", "items": { "type": "string" } },
+            "mcp_configs": { "type": "array", "items": { "type": "string" } },
+            "agent_files": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "generated_at": { "type": "string" }
+      }
+    },
+    "declared": {
+      "type": "object",
+      "required": ["project_type", "exposure", "business", "patch_policy"],
+      "properties": {
+        "project_type": {
+          "enum": ["web-app", "api", "mobile-backend", "wordpress", "static-site", "ai-agent", "library", "infrastructure", null]
+        },
+        "exposure": { "enum": ["public", "authenticated", "internal", null] },
+        "business": {
+          "type": "object",
+          "required": ["type", "data_handled"],
+          "properties": {
+            "type": { "type": ["string", "null"] },
+            "data_handled": {
+              "type": "array",
+              "items": {
+                "enum": ["public", "personal", "payment-card", "health", "student-records", "children-under-13", "cui", "financial", "credentials", "other"]
+              }
+            },
+            "compliance": { "type": "array", "items": { "type": "string" } },
+            "critical_vendors": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "ai": {
+          "type": "object",
+          "properties": {
+            "uses_ai": { "type": ["boolean", "null"] },
+            "models": { "type": "array", "items": { "type": "string" } },
+            "tools": { "type": "array", "items": { "type": "string" } },
+            "mcp_servers": { "type": "array", "items": { "type": "string" } },
+            "data_in_context": { "type": "array", "items": { "type": "string" } },
+            "human_approval_for": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "patch_policy": {
+          "type": "object",
+          "required": ["approver", "kev_days", "critical_days", "high_days"],
+          "properties": {
+            "approver": { "type": ["string", "null"] },
+            "kev_days": { "type": "integer", "minimum": 0 },
+            "critical_days": { "type": "integer", "minimum": 0 },
+            "high_days": { "type": "integer", "minimum": 0 },
+            "auto_merge": { "enum": ["none", "patch-level-dev-deps"] }
+          }
+        },
+        "overrides": { "type": "object" }
+      }
+    }
+  }
+}
