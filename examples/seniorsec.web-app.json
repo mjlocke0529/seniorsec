@@ -10,7 +10,7 @@
     ],
     "hosting": ["Firebase"],
     "ci": ["GitHub Actions"],
-    "ai": { "sdks": ["@anthropic-ai/sdk"], "mcp_configs": [], "agent_files": ["AGENTS.md"] },
+    "ai": { "sdks": ["example-llm-sdk"], "mcp_configs": [], "agent_files": ["AGENTS.md"] },
     "generated_at": "2026-11-21T00:00:00.000Z"
   },
   "declared": {
@@ -20,11 +20,11 @@
       "type": "appointment booking for a small service business",
       "data_handled": ["personal", "payment-card"],
       "compliance": ["PCI-DSS"],
-      "critical_vendors": ["Stripe (hosted checkout)", "Firebase", "Anthropic API"]
+      "critical_vendors": ["Stripe (hosted checkout)", "Firebase", "hosted LLM API provider"]
     },
     "ai": {
       "uses_ai": true,
-      "models": ["Anthropic Claude"],
+      "models": ["hosted LLM (your provider)"],
       "tools": ["read customer's own bookings", "draft confirmation email"],
       "mcp_servers": [],
       "data_in_context": ["personal"],
