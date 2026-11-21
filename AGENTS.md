@@ -40,7 +40,7 @@ Goal: turn a finding into a patch plan for one project.
 2. Load the rule packs listed for the project's type (`guide/README.md` has the table).
 3. Run `seniorsec check`, or apply the rule packs by hand to the area the finding touches.
 4. Write the plan from `templates/patch-plan.md`. Every step must be something a worker can do without guessing: a file, a command, a check, a rollback.
-5. Set the deadline from the project's `patch_policy`, not from your own judgment.
+5. Set the deadline from the project's `patch_policy`, not from your own judgment. Order findings as `sources/README.md` says: exploited now, then likely to be exploited, then severity.
 
 ## Role: Worker
 
@@ -59,6 +59,7 @@ Goal: execute one approved plan.
 | Which rules apply to a project type | `guide/README.md` |
 | A rule's check and fix | `guide/<pack>.md`, by rule ID |
 | Where to get threat data | `sources/registry.json` |
+| How sources are combined and what counts as confirmed | `sources/README.md` |
 | Which wiki page backs a topic | `sources/wiki-index.md` |
 | The profile file format | `docs/profile-guide.md`, `schema/profile.schema.json` |
 | Output formats | `templates/` |

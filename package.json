@@ -1,6 +1,6 @@
 {
   "name": "seniorsec",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The senior security engineer every repo should have: an agent-readable security guide plus a zero-dependency check tool.",
   "license": "Apache-2.0",
   "type": "module",

@@ -2,6 +2,22 @@
 
 Guide changes, source changes and tool changes are all recorded here, newest first.
 
+## 0.2.0 — 2026-11-21
+
+**Docs**
+- README: animated demo and a three-step screenshot guide; new sections on why to use it, what ongoing use looks like, how it differs from scanners and checklists, and how sources are validated.
+- `sources/README.md`: the rules for confirming, prioritizing and citing.
+
+**Sources**
+- 11 added (22 total): OWASP Top 10:2025, OWASP ASVS, NIST SSDF and its generative-AI profile, CWE Top 25, OpenSSF Scorecard, NVD, FIRST EPSS, CISA advisories, Wordfence Intelligence, AI Incident Database.
+
+**Tool**
+- `check` prints a compact summary on a terminal and whenever `--out` is used; `--markdown` and `--summary` force one or the other.
+- Example profile made vendor-neutral.
+
+**Known gaps (added)**
+- EPSS, NVD and Wordfence are documented as sources but `check` does not query them yet.
+
 ## 0.1.0 — 2026-11-21
 
 Initial scaffold.

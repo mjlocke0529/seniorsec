@@ -1,5 +1,5 @@
 {
-  "$comment": "Every source SeniorSec reads. tier: foundation = shapes the rules; primary = authoritative facts that can trigger a plan; news = leads only, must be confirmed against a primary source before anything changes.",
+  "$comment": "Every source SeniorSec reads. tier: foundation = shapes the rules; primary = authoritative facts that can confirm a finding or trigger a plan; news = leads only, must be confirmed against a primary source before anything changes. See sources/README.md for how they are combined.",
   "sources": [
     {
       "id": "cah-wiki",
@@ -37,6 +37,60 @@
       "notes": "Technique IDs (AML.Txxxx) used in guide/ai-agents.md. Re-check IDs on each ATLAS release."
     },
     {
+      "id": "owasp-top10",
+      "name": "OWASP Top 10:2025 (web applications)",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://owasp.org/Top10/2025/",
+      "cadence": "yearly",
+      "use": "Category names behind the web-app pack."
+    },
+    {
+      "id": "owasp-asvs",
+      "name": "OWASP Application Security Verification Standard",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/",
+      "cadence": "yearly",
+      "use": "Testable requirements; use to make a rule's Check more precise."
+    },
+    {
+      "id": "nist-ssdf",
+      "name": "NIST SP 800-218 Secure Software Development Framework",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://csrc.nist.gov/projects/ssdf",
+      "cadence": "yearly",
+      "use": "Practice IDs for the core pack. Version 1.1 is final; a 1.2 draft exists."
+    },
+    {
+      "id": "nist-ssdf-ai",
+      "name": "NIST SP 800-218A SSDF profile for generative AI",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final",
+      "cadence": "yearly",
+      "use": "Second reference for the ai-agents pack alongside OWASP and ATLAS."
+    },
+    {
+      "id": "cwe-top25",
+      "name": "CWE Top 25 Most Dangerous Software Weaknesses",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://cwe.mitre.org/top25/",
+      "cadence": "yearly",
+      "use": "Weakness IDs for cross-referencing rules and advisories."
+    },
+    {
+      "id": "openssf-scorecard",
+      "name": "OpenSSF Scorecard",
+      "tier": "foundation",
+      "kind": "web",
+      "url": "https://scorecard.dev/",
+      "cadence": "yearly",
+      "use": "Repository hygiene checks that back CORE-06 and AI-05."
+    },
+    {
       "id": "cisa-kev",
       "name": "CISA Known Exploited Vulnerabilities catalog",
       "tier": "primary",
@@ -62,6 +116,42 @@
       "url": "https://github.com/advisories",
       "cadence": "on-check",
       "notes": "Reviewed advisories only. Already included in OSV results; use directly for detail pages."
+    },
+    {
+      "id": "nvd",
+      "name": "NIST National Vulnerability Database",
+      "tier": "primary",
+      "kind": "api",
+      "url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+      "cadence": "on-check",
+      "use": "CVE record, CVSS vector and affected configurations. Second opinion on severity."
+    },
+    {
+      "id": "epss",
+      "name": "FIRST Exploit Prediction Scoring System",
+      "tier": "primary",
+      "kind": "api",
+      "url": "https://api.first.org/data/v1/epss",
+      "cadence": "on-check",
+      "use": "Probability a CVE is exploited in the next 30 days. Orders the queue after KEV. Query with ?cve=CVE-...,CVE-..."
+    },
+    {
+      "id": "cisa-advisories",
+      "name": "CISA cybersecurity advisories",
+      "tier": "primary",
+      "kind": "web",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories",
+      "cadence": "daily",
+      "use": "Government confirmation and mitigations for active campaigns."
+    },
+    {
+      "id": "wordfence-intel",
+      "name": "Wordfence Intelligence vulnerability feed",
+      "tier": "primary",
+      "kind": "api",
+      "url": "https://www.wordfence.com/help/wordfence-intelligence/v3-accessing-and-consuming-the-vulnerability-data-feed/",
+      "cadence": "daily",
+      "use": "WordPress core, plugin and theme vulnerabilities. Free, but version 3 of the feed needs a free API key."
     },
     {
       "id": "bleepingcomputer",
@@ -94,6 +184,15 @@
       "kind": "rss",
       "url": "https://krebsonsecurity.com/feed/",
       "cadence": "weekly"
+    },
+    {
+      "id": "ai-incident-db",
+      "name": "AI Incident Database",
+      "tier": "news",
+      "kind": "web",
+      "url": "https://incidentdatabase.ai/",
+      "cadence": "weekly",
+      "use": "Real-world AI failures and abuse; leads for the ai-agents pack."
     }
   ]
 }

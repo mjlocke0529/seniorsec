@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // SeniorSec CLI. Zero dependencies on purpose: a security tool should not add to your supply chain.
-// Usage: seniorsec <init|check|packs> [dir] [--offline] [--out FILE] [--json]
+// Usage: seniorsec <init|check|packs> [dir] [--offline] [--out FILE] [--json|--markdown|--summary]
 // Exit codes for check: 0 clean, 1 findings, 2 a finding is on CISA KEV, 3 a check could not run, 64 usage.
 
 import fs from 'node:fs';
@@ -314,6 +314,27 @@ function render(profile, packs, gaps, findings, notVerified) {
   return L.join('\n');
 }
 
+function renderText(profile, packs, gaps, findings, notVerified, outFile) {
+  const pol = profile.declared.patch_policy, L = [], cut = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t.padEnd(n));
+  L.push(`SeniorSec check  ${new Date().toISOString().slice(0, 10)}`, `Rule packs: ${packs.join(', ')}`);
+  if (gaps.length) L.push(`Profile incomplete: ${gaps.length} answer(s) missing in ${PROFILE} (${gaps.join(', ')})`);
+  L.push('');
+  if (!findings.length) L.push('No findings from the automated checks.');
+  else {
+    L.push(`${findings.length} finding(s)`);
+    for (const x of findings) {
+      const dep = x.kind === 'dependency', due = deadline(pol, sevOf(x));
+      L.push(`  ${cut(sevOf(x).toUpperCase(), 8)} ${cut(x.rule, 8)} ${cut(dep ? `${x.package}@${x.installed}` : x.where, 24)} ${cut(dep ? `${x.id}  ${x.summary}` : x.summary, 46)} due ${/^\d/.test(due) ? due : 'next cycle'}`);
+    }
+  }
+  L.push('', 'Not verified');
+  for (const n of notVerified) L.push(`  - ${n}`);
+  L.push('  - Rules that need a person or an agent to inspect the running system.');
+  if (outFile) L.push('', `Full report and draft patch plan: ${outFile}`);
+  else L.push('', 'Add --out plan.md for the full report and draft patch plan.');
+  return L.join('\n');
+}
+
 async function cmdCheck(root, flags) {
   const profile = loadProfile(root), gaps = profileGaps(profile);
   const packs = PACK_TABLE.filter(([, test]) => test(profile)).map(([n]) => n);
@@ -342,19 +363,24 @@ async function cmdCheck(root, flags) {
   }
   findings.sort((a, b) => SEV_ORDER.indexOf(sevOf(a)) - SEV_ORDER.indexOf(sevOf(b)));
 
-  const out = flags.json ? JSON.stringify({ packs, gaps, findings, notVerified }, null, 2) : render(profile, packs, gaps, findings, notVerified);
-  if (flags.out) { fs.writeFileSync(flags.out, out + '\n'); console.log(`Wrote ${flags.out} (${findings.length} findings)`); } else console.log(out);
+  const full = flags.json ? JSON.stringify({ packs, gaps, findings, notVerified }, null, 2) : render(profile, packs, gaps, findings, notVerified);
+  const summary = () => renderText(profile, packs, gaps, findings, notVerified, flags.out);
+  // --out writes the full report and prints the short summary. On a terminal the short summary is the default.
+  if (flags.out) { fs.writeFileSync(flags.out, full + '\n'); console.log(summary()); }
+  else if (!flags.json && (flags.summary || (process.stdout.isTTY && !flags.markdown))) console.log(summary());
+  else console.log(full);
   process.exit(findings.some((x) => x.kev) ? 2 : findings.length ? 1 : incomplete ? 3 : 0);
 }
 
 // ---------- main ----------
-const args = process.argv.slice(2), flags = { offline: false, json: false, out: null }, pos = [];
+const args = process.argv.slice(2), flags = { offline: false, json: false, summary: false, markdown: false, out: null }, pos = [];
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--offline') flags.offline = true; else if (args[i] === '--json') flags.json = true;
+  else if (args[i] === '--summary') flags.summary = true; else if (args[i] === '--markdown') flags.markdown = true;
   else if (args[i] === '--out') flags.out = args[++i]; else pos.push(args[i]);
 }
 const [cmd, dir = '.'] = pos, root = path.resolve(dir);
 if (cmd === 'init') cmdInit(root);
 else if (cmd === 'check') await cmdCheck(root, flags);
 else if (cmd === 'packs') { const p = loadProfile(root); console.log(PACK_TABLE.filter(([, t]) => t(p)).map(([n]) => n).join('\n')); }
-else { console.error('Usage: seniorsec <init|check|packs> [dir] [--offline] [--out FILE] [--json]'); process.exit(64); }
+else { console.error('Usage: seniorsec <init|check|packs> [dir] [--offline] [--out FILE] [--json|--markdown|--summary]'); process.exit(64); }

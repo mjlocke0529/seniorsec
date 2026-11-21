@@ -104,6 +104,17 @@ assert.match(r.out, /No fixed version is published for GHSA-bbbb/);
 assert.match(r.out, /\| kev \| CORE-02 \| leftpadish@1\.0\.0/);
 ok('check renders a patch plan');
 
+// short summary, and --out writes the full plan
+const planFile = path.join(dir, 'plan.md');
+r = await run(['check', dir, '--out', planFile], mock);
+assert.equal(r.code, 2, r.out);
+assert.match(r.out, /5 finding\(s\)|6 finding\(s\)|7 finding\(s\)/);
+assert.match(r.out, /KEV\s+CORE-02\s+leftpadish@1\.0\.0/);
+assert.match(r.out, /Full report and draft patch plan/);
+assert.match(fs.readFileSync(planFile, 'utf8'), /npm install leftpadish@1\.0\.3/);
+fs.rmSync(planFile);
+ok('--out writes the plan and prints a short summary');
+
 // unreachable OSV must not look clean
 fs.rmSync(path.join(dir, '.env')); fs.rmSync(path.join(dir, '.github'), { recursive: true }); fs.rmSync(path.join(dir, 'AGENTS.md')); fs.rmSync(path.join(dir, 'services'), { recursive: true });
 await run(['init', dir]);
